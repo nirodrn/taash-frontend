@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",  // Compiles to ES2020 (modern JavaScript)
+    "useDefineForClassFields": true,  // Ensures consistent behavior for class field declarations
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],  // Includes necessary libraries for browser-based JavaScript
+    "module": "ESNext",  // Allows using ESNext modules (dynamic imports, top-level await, etc.)
+    "skipLibCheck": true,  // Skip type checking of all declaration files (speeds up compilation)
+    "moduleResolution": "bundler",  // Resolves modules using bundler's module resolution strategy (e.g., Vite, Webpack)
+    "allowImportingTsExtensions": true,  // Allows importing `.ts` extensions in import statements
+    "isolatedModules": true,  // Ensures every file can be transpiled independently (helps with tools like Babel)
+    "moduleDetection": "force",  // Forces ES module detection, useful for compatibility with modern bundlers
+    "noEmit": true,  // Disables emitting output files (useful when using a bundler)
+    "jsx": "react-jsx",  // Uses the new JSX transform introduced in React 17
+
+    /* Add baseUrl and paths */
+    "baseUrl": "./src",  // Resolves imports from the `src` directory as the root
+    "paths": {
+      "*": ["node_modules/*", "src/*"]  // Resolves module imports from both `node_modules` and `src`
+    },
+
+    /* Linting */
+    "strict": true,  // Enables strict type-checking options for better error detection
+    "noUnusedLocals": true,  // Ensures there are no unused local variables
+    "noUnusedParameters": true,  // Ensures there are no unused function parameters
+    "noFallthroughCasesInSwitch": true  // Prevents fall-through behavior in switch statements
+  },
+  "include": ["src/**/*"]  // Includes all files inside the `src` folder for compilation
+}
