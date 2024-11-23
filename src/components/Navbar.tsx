@@ -71,7 +71,10 @@ function Navbar() {
                   <User className="h-6 w-6" /> {/* Profile Icon */}
                 </Link>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => {
+                    handleLogout();
+                    setIsOpen(false);
+                  }}
                   className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   <LogOut className="h-6 w-6" /> {/* Logout Icon */}
@@ -140,9 +143,11 @@ function Navbar() {
                   <User className="h-6 w-6" /> Profile
                 </Link>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => {
+                    handleLogout();
+                    setIsOpen(false);
+                  }}
                   className="block px-3 py-2 text-gray-600 hover:text-gray-900"
-                  onClick={() => setIsOpen(false)}
                 >
                   <LogOut className="h-6 w-6" /> Logout
                 </button>

@@ -67,7 +67,7 @@ function Shop() {
           <h1 className="text-4xl font-bold text-gray-900">Shop Collection</h1>
           <Link
             to="/cart"
-            className="px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
+            className="flex items-center justify-center min-w-[120px] px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base lg:text-lg"
           >
             View Cart
           </Link>
