@@ -4,6 +4,7 @@ import { ShoppingCart } from 'lucide-react';
 import { Product } from '../types';
 import { useStore } from '../store/useStore';
 import toast from 'react-hot-toast';
+import { getDatabase, ref, set } from 'firebase/database';
 
 interface ProductCardProps {
   product: Product;
@@ -11,16 +12,24 @@ interface ProductCardProps {
 
 function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useStore();
-  
+
   const spring = useSpring({
     from: { opacity: 0, transform: 'scale(0.9)' },
     to: { opacity: 1, transform: 'scale(1)' },
     config: { tension: 300, friction: 20 },
   });
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (window.confirm('Add this item to your cart?')) {
+      // Fetch the user's IP address
+      const ip = await getUserIP();
+      
+      // Add the item to Zustand cart store
       addToCart(product);
+
+      // Save cart item to Firebase with IP as the primary key
+      saveCartToFirebase(ip, product);
+
       toast.success(`${product.name} added to cart!`, {
         icon: '🛍️',
         style: {
@@ -30,6 +39,36 @@ function ProductCard({ product }: ProductCardProps) {
         },
       });
     }
+  };
+
+  // Function to fetch the user's IP address
+  const getUserIP = async () => {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      return data.ip;
+    } catch (error) {
+      console.error('Error fetching IP:', error);
+      return 'unknown'; // Fallback in case of an error
+    }
+  };
+
+  // Function to save cart to Firebase with IP as primary key
+  const saveCartToFirebase = (ip: string, product: Product) => {
+    const db = getDatabase();
+    const cartRef = ref(db, `cart/${ip}/${product.id}`);
+
+    set(cartRef, {
+      productId: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      image: product.image,
+      quantity: 1, // Default quantity when adding to cart
+      date: new Date().toISOString(), // Adding date to track the time of adding
+    }).catch((error) => {
+      console.error('Error saving cart to Firebase:', error);
+    });
   };
 
   return (

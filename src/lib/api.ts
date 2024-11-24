@@ -1,6 +1,5 @@
 // src/lib/api.ts
 
-import axios from 'axios';
 import { ref, push, set, remove, get, update, query, orderByChild, equalTo } from 'firebase/database';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, User as FirebaseUser } from 'firebase/auth';
 import { db, auth } from './firebase';
@@ -22,49 +21,20 @@ export const registerUser = async (email: string, password: string, fullName: st
     isAdmin: false
   };
 
+  // Save the user data to Firebase Realtime Database
   await set(ref(db, `users/${userCredential.user.uid}`), userData);
   return userData;
 };
 
-// api.js (or wherever you have your API functions)
-export const loginUser = async (email, password) => {
-  const response = await fetch('https://taash-backend.onrender.com/api/auth/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email, password }),
-  });
+export const loginUser = async (email: string, password: string): Promise<User> => {
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  const userSnapshot = await get(ref(db, `users/${userCredential.user.uid}`));
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Login failed');
+  if (!userSnapshot.exists()) {
+    throw new Error('User data not found in Firebase.');
   }
 
-  // Return the token from the response
-  return data.token;  // Ensure this matches the backend response structure
-};
-
-// API URL for your backend
-const API_URL = 'https://taash-backend.onrender.com/api';
-
-// Fetch products from the backend
-export const getProductsFromBackend = async () => {
-  const response = await axios.get(`${API_URL}/products`);
-  if (response.data && response.data.products) {
-    return response.data.products;
-  }
-  throw new Error('No products found in response');
-};
-
-// Fetch categories from the backend
-export const getCategoriesFromBackend = async () => {
-  const response = await axios.get(`${API_URL}/categories`);
-  if (response.data && response.data.categories) {
-    return response.data.categories;
-  }
-  throw new Error('No categories found in response');
+  return userSnapshot.val();
 };
 
 // Logout user

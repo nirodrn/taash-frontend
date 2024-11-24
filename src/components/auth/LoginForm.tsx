@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { loginUser } from '../../lib/api';  // Import your login function
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Import Firebase auth method
+import { auth } from '../../lib/firebase'; // Import the initialized Firebase auth object
 import toast from 'react-hot-toast';
 
 function LoginForm() {
@@ -8,7 +9,7 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation(); // Capture the current location
+  const location = useLocation();
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -16,25 +17,24 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      // Call loginUser and get the token
-      const token = await loginUser(email, password);
+      // Authenticate user with Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-      // Save the token to localStorage
-      localStorage.setItem('authToken', token);
+      // Retrieve user details
+      const user = userCredential.user;
 
-      // Log the token to verify it's saved
-      console.log('Token saved to localStorage:', localStorage.getItem('authToken'));
+      // Log user UID to verify successful login
+      console.log('Logged in user UID:', user.uid);
 
       toast.success('Successfully logged in!');
 
       // Get the location from which the user came (if any) or fallback to home
       const redirectTo = location.state?.from?.pathname || '/';
 
-      // Redirect to the intended page (checkout, or home page if none)
+      // Redirect to the intended page
       navigate(redirectTo);
-
-    } catch (error) {
-      console.error('Login failed:', error);
+    } catch (error: any) {
+      console.error('Login failed:', error.message);
       toast.error('Failed to login. Please check your credentials.');
     } finally {
       setLoading(false);

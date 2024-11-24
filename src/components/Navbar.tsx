@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Menu, X, User, LogIn, LogOut } from 'lucide-react'; // Updated icons
 import { useStore } from '../store/useStore';
 import toast from 'react-hot-toast';
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,20 +13,34 @@ function Navbar() {
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Check localStorage for token on initial render
+  // Initialize Firebase Auth listener to track login state
   useEffect(() => {
-    const token = localStorage.getItem('userToken'); // Check if token exists
-    if (token) {
-      setIsLoggedIn(true); // Set logged in if token is found
-    }
+    const auth = getAuth();
+    
+    // Listen for authentication state changes
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsLoggedIn(true); // Set logged in if user exists
+      } else {
+        setIsLoggedIn(false); // Set not logged in if no user is authenticated
+      }
+    });
+
+    // Clean up the listener on component unmount
+    return () => unsubscribe();
   }, []);
 
-  // Handle Logout (Clear token from localStorage)
-  const handleLogout = () => {
-    localStorage.removeItem('userToken');
-    setIsLoggedIn(false); // Update login state
-    toast.success('Logged out successfully');
-    navigate('/'); // Navigate to home after logout
+  // Handle Logout (using Firebase Auth signOut method)
+  const handleLogout = async () => {
+    try {
+      const auth = getAuth();
+      await signOut(auth); // Sign out from Firebase Auth
+      setIsLoggedIn(false); // Update login state
+      toast.success('Logged out successfully');
+      navigate('/'); // Navigate to home after logout
+    } catch (error) {
+      toast.error('Error logging out. Please try again.');
+    }
   };
 
   return (
@@ -71,10 +86,7 @@ function Navbar() {
                   <User className="h-6 w-6" /> {/* Profile Icon */}
                 </Link>
                 <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsOpen(false);
-                  }}
+                  onClick={handleLogout}
                   className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   <LogOut className="h-6 w-6" /> {/* Logout Icon */}

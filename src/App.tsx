@@ -9,6 +9,7 @@ import Admin from './pages/Admin';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile from './pages/Profile'; // Import Profile page
 import Footer from './components/Footer';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -25,6 +26,7 @@ function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/profile" element={<Profile />} /> {/* Add Profile Route */}
             <Route
               path="/checkout"
               element={

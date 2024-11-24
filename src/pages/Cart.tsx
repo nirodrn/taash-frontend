@@ -1,24 +1,66 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { getDatabase, ref, onValue, set } from 'firebase/database';
 
 function Cart() {
-  const { cart, removeFromCart, updateQuantity } = useStore();
+  const { cart, addToCart, removeFromCart, updateQuantity, clearCart, setCart } = useStore();
   const navigate = useNavigate();
-  
+
   const fadeIn = useSpring({
     from: { opacity: 0, transform: 'translateY(20px)' },
     to: { opacity: 1, transform: 'translateY(0)' },
   });
 
+  // Firebase setup to listen for changes in the cart
+  useEffect(() => {
+    const db = getDatabase();
+    const cartRef = ref(db, 'cart');
+
+    onValue(cartRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setCart(
+          Object.entries(data).map(([id, details]) => ({
+            id,
+            ...details,
+          }))
+        );
+      }
+    });
+  }, [setCart]);
+
+  // Update cart item in Firebase
+  const updateCartInFirebase = (id: string, updatedItem: any) => {
+    const db = getDatabase();
+    const itemRef = ref(db, `cart/${id}`);
+    set(itemRef, updatedItem).catch((error) => {
+      console.error('Error updating cart:', error);
+    });
+  };
+
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const handleUpdateQuantity = (id: string, quantity: number) => {
+    const item = cart.find((item) => item.id === id);
+    if (item) {
+      const updatedItem = { ...item, quantity };
+      updateQuantity(id, quantity); // Update Zustand store
+      updateCartInFirebase(id, updatedItem); // Sync with Firebase
+    }
+  };
 
   const handleRemoveItem = (id: string, name: string) => {
     if (window.confirm('Remove this item from cart?')) {
-      removeFromCart(id);
+      removeFromCart(id); // Remove item from Zustand store
+      const db = getDatabase();
+      const itemRef = ref(db, `cart/${id}`);
+      set(itemRef, null).catch((error) => {
+        console.error('Error removing item from cart:', error);
+      });
       toast.success(`${name} removed from cart`, {
         icon: '🗑️',
         style: {
@@ -45,7 +87,7 @@ function Cart() {
     <animated.div style={fadeIn} className="pt-20 min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             {cart.map((item) => (
@@ -64,14 +106,14 @@ function Cart() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1))}
+                    onClick={() => handleUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
                     className="p-1 hover:bg-gray-100 rounded"
                   >
                     <Minus className="h-4 w-4" />
                   </button>
                   <span className="w-8 text-center">{item.quantity}</span>
                   <button
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                     className="p-1 hover:bg-gray-100 rounded"
                   >
                     <Plus className="h-4 w-4" />
@@ -86,7 +128,7 @@ function Cart() {
               </div>
             ))}
           </div>
-          
+
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
               <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
@@ -106,7 +148,7 @@ function Cart() {
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => navigate('/checkout')}
                 className="w-full bg-black text-white py-3 rounded-full hover:bg-gray-800 transition-colors"
               >

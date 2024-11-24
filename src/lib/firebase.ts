@@ -1,9 +1,9 @@
 // src/lib/firebase.ts
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { getDatabase, ref, get } from "firebase/database";
+import { getDatabase, ref, get } from "firebase/database"; // Make sure this is correct
 
-// Your Firebase configuration object (use your actual config values)
+// Your Firebase configuration object
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -19,4 +19,4 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-export { auth, db, signInWithEmailAndPassword, get, ref };
+export { auth, db, signInWithEmailAndPassword, ref, get }; // Ensure get is exported here

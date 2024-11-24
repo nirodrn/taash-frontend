@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { registerUser } from '../../lib/api'; // Firebase registration function
 
 function RegisterForm() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
-    fullName: ''
+    fullName: '',
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,35 +30,14 @@ function RegisterForm() {
     setLoading(true);
 
     try {
-      // Send registration data to backend
-      const response = await fetch('https://taash-backend.onrender.com/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.fullName,
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+      // Register the user with Firebase
+      await registerUser(formData.email, formData.password, formData.fullName);
 
-      // Log the full response for debugging
-      const data = await response.json();
-      console.log('Full Response:', data); // Log the full response from the backend
-
-      // If backend returns an error
-      if (!response.ok) {
-        console.error('Error:', data); // Log the error response
-        throw new Error(data.message || 'Registration failed');
-      }
-
-      console.log('Success:', data); // Log the success response
-      toast.success('Successfully registered!');
+      toast.success('Successfully registered! Redirecting to login page...');
       navigate('/login'); // Redirect to login page after successful registration
     } catch (error) {
-      console.error('Registration error:', error); // Log any errors
-      toast.error(error.message || 'Failed to register. Please try again.');
+      console.error('Registration error:', error);
+      toast.error('Failed to register. Please try again.');
     } finally {
       setLoading(false);
     }
